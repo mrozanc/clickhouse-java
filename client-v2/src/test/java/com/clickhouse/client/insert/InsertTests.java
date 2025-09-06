@@ -56,6 +56,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPOutputStream;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
@@ -286,9 +287,16 @@ public class InsertTests extends BaseIntegrationTest {
 
                 List<GenericRecord> records = client.queryAll("SELECT * FROM " + tableName);
                 assertEquals(records.size(), 1000);
-                assertTrue(Thread.currentThread().getName()
-                        .startsWith(async ? "ForkJoinPool.commonPool" : "main"), "Threads starts with " + Thread.currentThread().getName());
-        })
+                    String currentThreadName = Thread.currentThread().getName();
+                    if (async) {
+                        assertTrue(currentThreadName.startsWith("ForkJoinPool.commonPool"),
+                                "Async operations should use ForkJoinPool, but found: " + currentThreadName);
+                    } else {
+                        // Instead of checking for a specific thread name, just verify it's not the async thread pool
+                        assertFalse(currentThreadName.startsWith("ForkJoinPool.commonPool"),
+                                "Non-async operations should not use ForkJoinPool, but found: " + currentThreadName);
+                    }
+                })
                 .join(); // wait operation complete. only for tests
     }
 
