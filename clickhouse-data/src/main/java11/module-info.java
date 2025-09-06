@@ -1,7 +1,8 @@
 /**
  * Declares com.clickhouse.data module.
  */
-module com.clickhouse.data {
+
+open module com.clickhouse.data {
     exports com.clickhouse.config;
     exports com.clickhouse.data;
     // exports com.clickhouse.data.cache;
@@ -12,8 +13,11 @@ module com.clickhouse.data {
     exports com.clickhouse.logging;
 
     requires static java.logging;
+    requires static java.sql;
+    requires static com.aayushatharva.brotli4j;
     requires static com.google.gson;
     requires static com.github.benmanes.caffeine;
+    requires static org.apache.commons.compress;
     requires static org.lz4.java;
     requires static org.slf4j;
     requires static org.roaringbitmap;

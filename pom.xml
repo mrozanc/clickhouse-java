@@ -613,7 +613,7 @@
                         <!-- arg>-Werror</arg -->
                     </compilerArgs>
                 </configuration>
-                <executions>
+                <!--<executions>
                     <execution>
                         <id>java11</id>
                         <phase>none</phase>
@@ -648,7 +648,7 @@
                             <multiReleaseOutput>true</multiReleaseOutput>
                         </configuration>
                     </execution>
-                </executions>
+                </executions>-->
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -821,9 +821,10 @@
             <id>compile-java8</id>
             <activation>
                 <!-- jdk>(,8]</jdk -->
-                <property>
+              <activeByDefault>true</activeByDefault>
+                <!--<property>
                     <name>j8</name>
-                </property>
+                </property>-->
             </activation>
             <build>
                 <plugins>

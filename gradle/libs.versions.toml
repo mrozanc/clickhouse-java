@@ -1,0 +1,73 @@
+# Gradle Version Catalog generated from dependencies declared in root pom.xml
+# Do not modify pom.xml; this catalog mirrors its declared dependencies.
+
+[versions]
+annotations-api = "6.0.53"
+asm = "9.7"
+brotli = "0.1.2"
+brotli4j = "1.12.0"
+caffeine = "3.1.7"
+commons-compress = "1.27.1"
+commons-lang3 = "3.18.0"
+dnsjava = "3.6.0"
+gson = "2.10.1"
+guava = "33.4.6-jre"
+httpclient = "5.4.4"
+jackson = "2.17.2"
+jctools = "4.0.1"
+lombok = "1.18.36"
+lz4 = "1.8.0"
+mariadb-driver = "3.1.4"
+micrometer = "1.14.3"
+mockito = "5.19.0"
+mysql-driver = "8.1.0"
+postgresql-driver = "42.6.1"
+repackaged = "1.9.2"
+roaringbitmap = "0.9.47"
+slf4j = "2.0.7"
+snappy = "1.1.10.4"
+testcontainers = "1.21.0"
+testng = "7.5.1"
+wiremock = "3.13.0"
+xz = "1.9"
+zstd-jni = "1.5.5-5"
+
+[libraries]
+asm = { module = "org.ow2.asm:asm", version.ref = "asm" }
+brotli-dec = { module = "org.brotli:dec", version.ref = "brotli" }
+brotli4j = { module = "com.aayushatharva.brotli4j:brotli4j", version.ref = "brotli4j" }
+brotli4j-native-linux-x64 = { module = "com.aayushatharva.brotli4j:native-linux-x86_64", version.ref = "brotli4j" }
+brotli4j-native-osx-aarch64 = { module = "com.aayushatharva.brotli4j:native-osx-aarch64", version.ref = "brotli4j" }
+brotli4j-native-osx-x64 = { module = "com.aayushatharva.brotli4j:native-osx-x86_64", version.ref = "brotli4j" }
+brotli4j-native-windows-x64 = { module = "com.aayushatharva.brotli4j:native-windows-x86_64", version.ref = "brotli4j" }
+caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version.ref = "caffeine" }
+clickhouse-commons-compress = { module = "com.clickhouse:org.apache.commons.compress", version.ref = "repackaged" }
+clickhouse-javacc = { module = "com.clickhouse:com.javacc", version.ref = "repackaged" }
+clickhouse-roaringbitmap = { module = "com.clickhouse:org.roaringbitmap", version.ref = "repackaged" }
+commons-compress = { module = "org.apache.commons:commons-compress", version.ref = "commons-compress" }
+commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "commons-lang3" }
+dnsjava = { module = "dnsjava:dnsjava", version.ref = "dnsjava" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+guava = { module = "com.google.guava:guava", version.ref = "guava" }
+httpcomponents-client5-httpclient5 = { module = "org.apache.httpcomponents.client5:httpclient5", version.ref = "httpclient" }
+jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
+jctools-core = { module = "org.jctools:jctools-core", version.ref = "jctools" }
+lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
+lz4-java = { module = "org.lz4:lz4-java", version.ref = "lz4" }
+lz4-pure-java = { module = "org.lz4:lz4-pure-java", version.ref = "lz4" }
+mariadb-java-client = { module = "org.mariadb.jdbc:mariadb-java-client", version.ref = "mariadb-driver" }
+micrometer-core = { module = "io.micrometer:micrometer-core", version.ref = "micrometer" }
+mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
+mysql-connector-java = { module = "mysql:mysql-connector-java", version.ref = "mysql-driver" }
+postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql-driver" }
+roaringbitmap = { module = "org.roaringbitmap:RoaringBitmap", version.ref = "roaringbitmap" }
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
+snappy-java = { module = "org.xerial.snappy:snappy-java", version.ref = "snappy" }
+tomcat-annotations-api = { module = "org.apache.tomcat:annotations-api", version.ref = "annotations-api" }
+testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers" }
+testcontainers-toxiproxy = { module = "org.testcontainers:toxiproxy", version.ref = "testcontainers" }
+testng = { module = "org.testng:testng", version.ref = "testng" }
+wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version.ref = "wiremock" }
+xz = { module = "org.tukaani:xz", version.ref = "xz" }
+zstd-jni = { module = "com.github.luben:zstd-jni", version.ref = "zstd-jni" }
