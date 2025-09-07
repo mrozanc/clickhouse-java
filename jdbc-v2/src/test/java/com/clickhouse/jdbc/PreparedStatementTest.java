@@ -9,47 +9,25 @@ import com.clickhouse.test.SoftAssertWithLineNumber;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStreamReader;
-import java.sql.Array;
-import java.sql.Connection;
+import java.sql.*;
 import java.sql.Date;
-import java.sql.JDBCType;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.sql.SQLType;
-import java.sql.Statement;
-import java.sql.Timestamp;
-import java.sql.Types;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.GregorianCalendar;
-import java.util.Properties;
-import java.util.Random;
-import java.util.TimeZone;
-import java.util.UUID;
+import java.util.*;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertThrows;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.expectThrows;
+import static org.testng.Assert.*;
 
-@Test(groups = { "integration" })
+@Test(groups = {"integration"})
 public class PreparedStatementTest extends JdbcIntegrationTest {
 
-    @Test(groups = { "integration" })
+    @Test(groups = {"integration"})
     public void testSetNull() throws Exception {
         try (Connection conn = getJdbcConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement("SELECT ?")) {
@@ -63,7 +41,7 @@ public class PreparedStatementTest extends JdbcIntegrationTest {
         }
     }
 
-    @Test(groups = { "integration" })
+    @Test(groups = {"integration"})
     public void testSetBoolean() throws Exception {
         try (Connection conn = getJdbcConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement("SELECT ?")) {
@@ -77,7 +55,7 @@ public class PreparedStatementTest extends JdbcIntegrationTest {
         }
     }
 
-    @Test(groups = { "integration" })
+    @Test(groups = {"integration"})
     public void testSetByte() throws Exception {
         try (Connection conn = getJdbcConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement("SELECT ?")) {
@@ -91,7 +69,7 @@ public class PreparedStatementTest extends JdbcIntegrationTest {
         }
     }
 
-    @Test(groups = { "integration" })
+    @Test(groups = {"integration"})
     public void testSetShort() throws Exception {
         try (Connection conn = getJdbcConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement("SELECT ?")) {
@@ -105,7 +83,7 @@ public class PreparedStatementTest extends JdbcIntegrationTest {
         }
     }
 
-    @Test(groups = { "integration" })
+    @Test(groups = {"integration"})
     public void testSetInt() throws Exception {
         try (Connection conn = getJdbcConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement("SELECT ?")) {
@@ -119,7 +97,7 @@ public class PreparedStatementTest extends JdbcIntegrationTest {
         }
     }
 
-    @Test(groups = { "integration" })
+    @Test(groups = {"integration"})
     public void testSetLong() throws Exception {
         try (Connection conn = getJdbcConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement("SELECT ?")) {
@@ -133,7 +111,7 @@ public class PreparedStatementTest extends JdbcIntegrationTest {
         }
     }
 
-    @Test(groups = { "integration" })
+    @Test(groups = {"integration"})
     public void testSetFloat() throws Exception {
         try (Connection conn = getJdbcConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement("SELECT ?")) {
@@ -147,7 +125,7 @@ public class PreparedStatementTest extends JdbcIntegrationTest {
         }
     }
 
-    @Test(groups = { "integration" })
+    @Test(groups = {"integration"})
     public void testSetDouble() throws Exception {
         try (Connection conn = getJdbcConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement("SELECT ?")) {
@@ -161,7 +139,7 @@ public class PreparedStatementTest extends JdbcIntegrationTest {
         }
     }
 
-    @Test(groups = { "integration" })
+    @Test(groups = {"integration"})
     public void testSetString() throws Exception {
         try (Connection conn = getJdbcConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement("SELECT ?")) {
@@ -175,22 +153,35 @@ public class PreparedStatementTest extends JdbcIntegrationTest {
         }
     }
 
-    @Test(groups = { "integration" })
+    @Test(groups = {"integration"})
     public void testSetBytes() throws Exception {
         try (Connection conn = getJdbcConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement("SELECT ?::Array(Int8)")) {
-                stmt.setBytes(1, new byte[] { 1, 2, 3 });
+                stmt.setBytes(1, new byte[]{1, 2, 3});
                 try (ResultSet rs = stmt.executeQuery()) {
                     assertTrue(rs.next());
-                    assertEquals(rs.getBytes(1), new byte[] { 1, 2, 3 });
+                    assertEquals(rs.getBytes(1), new byte[]{1, 2, 3});
                     assertFalse(rs.next());
                 }
             }
         }
     }
 
-    @Test(groups = { "integration" })
-    public void testSetDate() throws Exception {
+    @DataProvider(name = "timeZones")
+    public Object[][] timeZones() {
+        return new Object[][]{
+                {null},
+                {"UTC"},
+                {"Europe/Paris"},
+        };
+    }
+
+    @Test(groups = {"integration"}, dataProvider = "timeZones")
+    public void testSetDate(String defaultTimeZone) throws Exception {
+        TimeZoneDependantTestCase.executeWithDefaultTimeZone(defaultTimeZone, this::testSetDate);
+    }
+
+    private void testSetDate() throws Exception {
         SoftAssertWithLineNumber softly = new SoftAssertWithLineNumber();
 
         try (Connection conn = getJdbcConnection()) {
@@ -221,7 +212,7 @@ public class PreparedStatementTest extends JdbcIntegrationTest {
         softly.assertAll();
     }
 
-    @Test(groups = { "integration" })
+    @Test(groups = {"integration"})
     public void testSetTime() throws Exception {
         try (Connection conn = getJdbcConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement("SELECT toDateTime(?)")) {
@@ -235,7 +226,7 @@ public class PreparedStatementTest extends JdbcIntegrationTest {
         }
     }
 
-    @Test(groups = { "integration" })
+    @Test(groups = {"integration"})
     public void testSetTimestamp() throws Exception {
         try (Connection conn = getJdbcConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement("SELECT toDateTime64(?, 3)")) {
@@ -249,7 +240,7 @@ public class PreparedStatementTest extends JdbcIntegrationTest {
         }
     }
 
-    @Test(groups = { "integration" })
+    @Test(groups = {"integration"})
     public void testBigDecimal() throws Exception {
         try (Connection conn = getJdbcConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement("SELECT ?")) {
@@ -263,11 +254,11 @@ public class PreparedStatementTest extends JdbcIntegrationTest {
         }
     }
 
-    @Test(groups = { "integration" })
+    @Test(groups = {"integration"})
     public void testPrimitiveArrays() throws Exception {
         try (Connection conn = getJdbcConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement("SELECT ?")) {
-                stmt.setObject(1, new String[][] {new String[]{"a"}, new String[]{"b"}, new String[]{"c"}});
+                stmt.setObject(1, new String[][]{new String[]{"a"}, new String[]{"b"}, new String[]{"c"}});
                 try (ResultSet rs = stmt.executeQuery()) {
                     assertTrue(rs.next());
                     Array a1 = rs.getArray(1);
@@ -284,7 +275,7 @@ public class PreparedStatementTest extends JdbcIntegrationTest {
             }
 
             try (PreparedStatement stmt = conn.prepareStatement("SELECT ?")) {
-                stmt.setObject(1, new Object[] {1, 2, 3});
+                stmt.setObject(1, new Object[]{1, 2, 3});
                 try (ResultSet rs = stmt.executeQuery()) {
                     assertTrue(rs.next());
                     Array a1 = rs.getArray(1);
@@ -333,7 +324,7 @@ public class PreparedStatementTest extends JdbcIntegrationTest {
         final String value = "Some long string with '' to check quote escaping";
         try (Connection conn = getJdbcConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement("SELECT ? as v1, ? as v2")) {
-                stmt.setUnicodeStream(1, new ByteArrayInputStream(value.getBytes()),  value.length());
+                stmt.setUnicodeStream(1, new ByteArrayInputStream(value.getBytes()), value.length());
                 stmt.setUnicodeStream(2, new ByteArrayInputStream(value.getBytes()), 10);
 
                 try (ResultSet rs = stmt.executeQuery()) {
@@ -383,7 +374,7 @@ public class PreparedStatementTest extends JdbcIntegrationTest {
     }
 
 
-    @Test(groups = { "integration" })
+    @Test(groups = {"integration"})
     public void testEscapeStrings() throws Exception {
         try (Connection conn = getJdbcConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement("SELECT FALSE OR ? = 'test', ?")) {
@@ -399,7 +390,7 @@ public class PreparedStatementTest extends JdbcIntegrationTest {
         }
     }
 
-    @Test(groups = { "integration" })
+    @Test(groups = {"integration"})
     public void testTernaryOperator() throws Exception {
         try (Connection conn = getJdbcConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement("SELECT ( TRUE ? 1 : 0) as val1, ? as val2")) {
@@ -467,7 +458,7 @@ public class PreparedStatementTest extends JdbcIntegrationTest {
         }
     }
 
-    @Test(groups = { "integration" })
+    @Test(groups = {"integration"})
     void testMultipleWithClauses() throws Exception {
         try (Connection conn = getJdbcConnection();
              PreparedStatement stmt = conn.prepareStatement(
@@ -481,7 +472,7 @@ public class PreparedStatementTest extends JdbcIntegrationTest {
         }
     }
 
-    @Test(groups = { "integration" })
+    @Test(groups = {"integration"})
     void testRecursiveWithClause() throws Exception {
         if (ClickHouseVersion.of(getServerVersion()).check("(,24.3]")) {
             return; // recursive CTEs were introduced in 24.4
@@ -504,7 +495,7 @@ public class PreparedStatementTest extends JdbcIntegrationTest {
         }
     }
 
-    @Test(groups = { "integration" })
+    @Test(groups = {"integration"})
     void testWithClauseWithMultipleParameters() throws Exception {
         try (Connection conn = getJdbcConnection();
              PreparedStatement stmt = conn.prepareStatement(
@@ -531,7 +522,7 @@ public class PreparedStatementTest extends JdbcIntegrationTest {
         }
     }
 
-    @Test(groups = { "integration" })
+    @Test(groups = {"integration"})
     void testSelectFromArray() throws Exception {
         try (Connection conn = getJdbcConnection();
              PreparedStatement stmt = conn.prepareStatement(
@@ -546,7 +537,7 @@ public class PreparedStatementTest extends JdbcIntegrationTest {
         }
     }
 
-    @Test(groups = { "integration" })
+    @Test(groups = {"integration"})
     void testInsert() throws Exception {
         int ROWS = 1000;
         String payload = RandomStringUtils.random(1024, true, true);
@@ -560,12 +551,12 @@ public class PreparedStatementTest extends JdbcIntegrationTest {
                     for (int i = 0; i < ROWS; i++) {
                         stmt.setShort(1, (short) i);
                         stmt.setString(2, payload);
-                        stmt.setByte(3, (byte)i);
-                        stmt.setShort(4, (short)i);
+                        stmt.setByte(3, (byte) i);
+                        stmt.setShort(4, (short) i);
                         stmt.setInt(5, i);
-                        stmt.setLong(6, (long)i);
-                        stmt.setFloat(7, (float)(i*0.1));
-                        stmt.setDouble(8, (double)(i*0.1));
+                        stmt.setLong(6, (long) i);
+                        stmt.setFloat(7, (float) (i * 0.1));
+                        stmt.setDouble(8, (double) (i * 0.1));
                         stmt.setBoolean(9, true);
                         stmt.addBatch();
                     }
@@ -625,14 +616,14 @@ public class PreparedStatementTest extends JdbcIntegrationTest {
 
     @DataProvider(name = "testGetMetadataDataProvider")
     static Object[][] testGetMetadataDataProvider() {
-        return new Object[][] {
+        return new Object[][]{
                 {"INSERT INTO `%s` VALUES (?, ?, ?)", 3, new Object[]{"test", 0.3f, 0.4f}, 3},
                 {"SELECT * FROM `%s`", 3, null, 3},
                 {"SHOW TABLES", 0, null, 1}
         };
     }
 
-    @Test(groups = { "integration" })
+    @Test(groups = {"integration"})
     void testMetabaseBug01() throws Exception {
         try (Connection conn = getJdbcConnection()) {
             try (Statement stmt = conn.createStatement()) {
@@ -743,7 +734,7 @@ public class PreparedStatementTest extends JdbcIntegrationTest {
             }
 
             try (PreparedStatement stmt = conn.prepareStatement("INSERT INTO `users_tmp02` (`name`, `last_login`, `password`, `id`) VALUES (?, `parseDateTimeBestEffort`(?, ?), ?, ?)")) {
-                for (int i=0; i < 10; i++) {
+                for (int i = 0; i < 10; i++) {
                     stmt.setObject(1, "Plato Yeshua");
                     stmt.setObject(2, "2014-04-01 08:30:00.000");
                     stmt.setObject(3, "UTC");
@@ -763,7 +754,7 @@ public class PreparedStatementTest extends JdbcIntegrationTest {
         }
     }
 
-    @Test(groups = { "integration" })
+    @Test(groups = {"integration"})
     void testStatementSplit() throws Exception {
         try (Connection conn = getJdbcConnection()) {
             try (Statement stmt = conn.createStatement()) {
@@ -1179,7 +1170,7 @@ public class PreparedStatementTest extends JdbcIntegrationTest {
 
     @DataProvider(name = "testReplaceQuestionMark_dataProvider")
     public static Object[][] testReplaceQuestionMark_dataProvider() {
-        return new Object[][] {
+        return new Object[][]{
                 {"", ""},
                 {"     ", "     "},
                 {"SELECT * FROM t WHERE a = '?'", "SELECT * FROM t WHERE a = '?'"},
@@ -1188,7 +1179,7 @@ public class PreparedStatementTest extends JdbcIntegrationTest {
         };
     }
 
-    @Test(groups = { "integration" })
+    @Test(groups = {"integration"})
     public void testJdbcEscapeSyntax() throws Exception {
         if (ClickHouseVersion.of(getServerVersion()).check("(,23.8]")) {
             return; // there is no `timestamp` function TODO: fix in JDBC
@@ -1282,10 +1273,10 @@ public class PreparedStatementTest extends JdbcIntegrationTest {
             }
 
             try (Statement stmt = conn.createStatement();
-                ResultSet rs = stmt.executeQuery("SELECT * FROM " + table)) {
+                 ResultSet rs = stmt.executeQuery("SELECT * FROM " + table)) {
 
                 int count = 0;
-                while(rs.next()) {
+                while (rs.next()) {
                     count++;
                     assertNull(rs.getObject(2));
                 }
@@ -1368,7 +1359,7 @@ public class PreparedStatementTest extends JdbcIntegrationTest {
 
         try (Connection conn = getJdbcConnection()) {
             String cte = "select number from system.numbers where number in (?) limit 10";
-            Long[] filter =  new Long[]{2L, 4L, 6L};
+            Long[] filter = new Long[]{2L, 4L, 6L};
             try (PreparedStatement stmt = conn.prepareStatement(cte)) {
                 stmt.setArray(1, conn.createArrayOf("Int64", filter));
                 ResultSet rs = stmt.executeQuery();
@@ -1386,35 +1377,35 @@ public class PreparedStatementTest extends JdbcIntegrationTest {
     public void testTypeCastsWithoutArgument(Object value, SQLType targetType, ClickHouseDataType expectedType) throws Exception {
         try (Connection conn = getJdbcConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement("select ?, toTypeName(?)")) {
-               stmt.setObject(1, value, targetType);
-               stmt.setObject(2, value, targetType);
+                stmt.setObject(1, value, targetType);
+                stmt.setObject(2, value, targetType);
 
-               try (ResultSet rs = stmt.executeQuery()) {
-                   rs.next();
-                   assertEquals(rs.getString(2), expectedType.getName());
-                   switch (expectedType) {
-                       case IPv4:
-                           assertEquals(rs.getString(1), "/" + value);
-                           break;
-                       case IPv6:
-                           // do not check
-                           break;
-                       default:
-                           assertEquals(rs.getString(1), String.valueOf(value));
-                   }
-               }
+                try (ResultSet rs = stmt.executeQuery()) {
+                    rs.next();
+                    assertEquals(rs.getString(2), expectedType.getName());
+                    switch (expectedType) {
+                        case IPv4:
+                            assertEquals(rs.getString(1), "/" + value);
+                            break;
+                        case IPv6:
+                            // do not check
+                            break;
+                        default:
+                            assertEquals(rs.getString(1), String.valueOf(value));
+                    }
+                }
             }
         }
     }
 
     @DataProvider(name = "testTypeCastsDP")
     public static Object[][] testTypeCastsDP() {
-        return new Object[][] {
+        return new Object[][]{
                 {100, ClickHouseDataType.Int8, ClickHouseDataType.Int8},
                 {100L, ClickHouseDataType.Int16, ClickHouseDataType.Int16},
                 {100L, ClickHouseDataType.Int32, ClickHouseDataType.Int32},
                 {100L, ClickHouseDataType.Int64, ClickHouseDataType.Int64},
-                 {100L, ClickHouseDataType.UInt8, ClickHouseDataType.UInt8},
+                {100L, ClickHouseDataType.UInt8, ClickHouseDataType.UInt8},
                 {100L, ClickHouseDataType.UInt16, ClickHouseDataType.UInt16},
                 {100L, ClickHouseDataType.UInt32, ClickHouseDataType.UInt32},
                 {100L, ClickHouseDataType.UInt64, ClickHouseDataType.UInt64},
@@ -1452,7 +1443,7 @@ public class PreparedStatementTest extends JdbcIntegrationTest {
 
     @DataProvider(name = "testJDBCTypeCastDP")
     public static Object[][] testJDBCTypeCastDP() {
-        return new Object[][] {
+        return new Object[][]{
                 {100, JDBCType.TINYINT.getVendorTypeNumber().intValue(), ClickHouseDataType.Int8}
         };
     }
@@ -1462,11 +1453,11 @@ public class PreparedStatementTest extends JdbcIntegrationTest {
         try (Connection conn = getJdbcConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement("select ?, toTypeName(?)")) {
                 for (ClickHouseDataType type : JdbcUtils.INVALID_TARGET_TYPES) {
-                    expectThrows(SQLException.class, ()->stmt.setObject(1, "", type));
+                    expectThrows(SQLException.class, () -> stmt.setObject(1, "", type));
                 }
 
-                expectThrows(SQLException.class, ()->stmt.setObject(1, "", JDBCType.OTHER.getVendorTypeNumber()));
-                expectThrows(SQLException.class, ()->stmt.setObject(1, "", ClickHouseDataType.DateTime64));
+                expectThrows(SQLException.class, () -> stmt.setObject(1, "", JDBCType.OTHER.getVendorTypeNumber()));
+                expectThrows(SQLException.class, () -> stmt.setObject(1, "", ClickHouseDataType.DateTime64));
             }
         }
     }
@@ -1489,7 +1480,7 @@ public class PreparedStatementTest extends JdbcIntegrationTest {
 
     @DataProvider(name = "testTypeCastWithScaleOrLengthDP")
     public static Object[][] testTypeCastWithScaleOrLengthDP() {
-        return new Object[][] {
+        return new Object[][]{
                 {0.123456789, ClickHouseDataType.Decimal64, 3, "0.123", "Decimal(18, 3)"},
                 {"hello", ClickHouseDataType.FixedString, 5, "hello", "FixedString(5)"},
                 {"2017-10-02 10:20:30.333333", ClickHouseDataType.DateTime64, 3, "2017-10-02 10:20:30.333", "DateTime64(3)"}
@@ -1549,7 +1540,8 @@ public class PreparedStatementTest extends JdbcIntegrationTest {
                     ClickHouseColumn col1 = ClickHouseColumn.of("v", "Array(Int8)");
                     assertEquals(stmt.encodeArray(array1, col1.getArrayNestedLevel(), col1.getArrayBaseColumn().getDataType()),
                             "[1,2,3]");
-                }                {
+                }
+                {
                     Object[] array1 = new Object[]{1, 2, 3};
                     Object[] array2 = new Object[]{4, 5, 6};
                     Object[] array3 = new Object[]{array1, array2};

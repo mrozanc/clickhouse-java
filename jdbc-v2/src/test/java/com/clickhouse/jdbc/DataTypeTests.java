@@ -10,6 +10,7 @@ import com.clickhouse.test.SoftAssertWithLineNumber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.math.BigDecimal;
@@ -430,8 +431,21 @@ public class DataTypeTests extends JdbcIntegrationTest {
         }
     }
 
-    @Test(groups = { "integration" })
-    public void testDateTypes() throws SQLException {
+    @DataProvider(name = "timeZones")
+    public Object[][] timeZones() {
+        return new Object[][]{
+                {null},
+                {"UTC"},
+                {"Europe/Paris"},
+        };
+    }
+
+    @Test(groups = {"integration"}, dataProvider = "timeZones")
+    public void testDateTypes(String defaultTimeZone) {
+        TimeZoneDependantTestCase.executeWithDefaultTimeZone(defaultTimeZone, this::testDateTypes);
+    }
+
+    private void testDateTypes() throws SQLException {
         runQuery("CREATE TABLE test_dates (order Int8, "
                 + "date Date, date32 Date32, " +
                 "dateTime DateTime, dateTime32 DateTime32, " +

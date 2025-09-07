@@ -3,27 +3,14 @@ package com.clickhouse.jdbc;
 import com.clickhouse.jdbc.internal.DetachedResultSet;
 import com.clickhouse.test.SoftAssertWithLineNumber;
 import org.testng.Assert;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.math.BigDecimal;
-import java.sql.Array;
-import java.sql.Blob;
-import java.sql.Clob;
-import java.sql.Connection;
-import java.sql.Date;
-import java.sql.NClob;
-import java.sql.PreparedStatement;
-import java.sql.Ref;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Time;
-import java.sql.Timestamp;
-import java.sql.Types;
+import java.sql.*;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -32,10 +19,7 @@ import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertThrows;
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.*;
 
 public class DetachedResultSetTest extends JdbcIntegrationTest {
 
@@ -355,8 +339,21 @@ public class DetachedResultSetTest extends JdbcIntegrationTest {
         }
     }
 
-    @Test(groups = { "integration" })
-    public void testDateTypes() throws SQLException {
+    @DataProvider(name = "timeZones")
+    public Object[][] timeZones() {
+        return new Object[][]{
+                {null},
+                {"UTC"},
+                {"Europe/Paris"},
+        };
+    }
+
+    @Test(groups = {"integration"}, dataProvider = "timeZones")
+    public void testDateTypes(String defaultTimeZone) {
+        TimeZoneDependantTestCase.executeWithDefaultTimeZone(defaultTimeZone, this::testDateTypes);
+    }
+
+    private void testDateTypes() throws SQLException {
         runQuery("CREATE TABLE detached_rs_test_dates (order Int8, "
                 + "date Date, date32 Date32, " +
                 "dateTime DateTime, dateTime32 DateTime32, " +
@@ -486,8 +483,7 @@ public class DetachedResultSetTest extends JdbcIntegrationTest {
 
         try (Connection conn = getJdbcConnection();
              Statement stmt = conn.createStatement();
-             ResultSet srcRs = stmt.executeQuery("SELECT * FROM detached_rs_test_dates ORDER BY order"))
-        {
+             ResultSet srcRs = stmt.executeQuery("SELECT * FROM detached_rs_test_dates ORDER BY order")) {
             ResultSet rs = DetachedResultSet.createFromResultSet(srcRs, defaultCalendar, Collections.emptyList());
             softly.assertTrue(rs.next());
             softly.assertEquals(rs.getString("date"), "1970-01-01", "getString date");
