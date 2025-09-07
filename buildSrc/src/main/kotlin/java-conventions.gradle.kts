@@ -1,9 +1,15 @@
-import kotlin.io.path.PathWalkOption
+@file:OptIn(ExperimentalTime::class)
+
+import org.apache.tools.ant.filters.ReplaceTokens
+import java.time.Clock
 import kotlin.io.path.relativeTo
 import kotlin.io.path.walk
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 plugins {
     `java-library`
+    `maven-publish`
 }
 
 java {
@@ -32,7 +38,7 @@ fun registerJavaTarget(javaVersion: Int) {
             into(copySourcesDestination)
         }
 
-        val javaSourceSet = sourceSets.create("java$javaVersion") {
+        val javaSourceSet = sourceSets.create("java$javaVersion").apply {
             java {
                 srcDir(sourceDir)
             }
@@ -64,14 +70,36 @@ fun registerJavaTarget(javaVersion: Int) {
 registerJavaTarget(11)
 registerJavaTarget(17)
 
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            from(components["java"])
+        }
+    }
+}
+
 tasks {
+    processResources {
+        val placeHolders = mapOf(
+            "revision" to project.version.toString(),
+            "apache.httpclient.version" to versionCatalogs.named("libs").findVersion("httpclient").get().requiredVersion,
+        )
+
+        inputs.property("placeholders", placeHolders)
+        eachFile {
+            if (name == "${project.name}-version.properties") {
+                filter(ReplaceTokens::class, "beginToken" to $$"${", "endToken" to "}", "tokens" to
+                    placeHolders + ("build_timestamp" to Clock.systemUTC().instant().epochSecond.toString())
+                )
+            }
+        }
+    }
+
     compileJava {
         options.compilerArgs.add("-source")
         options.compilerArgs.add("1.8")
         options.compilerArgs.add("-target")
         options.compilerArgs.add("1.8")
-        //sourceCompatibility = JavaVersion.VERSION_1_8.toString()
-        //targetCompatibility = JavaVersion.VERSION_1_8.toString()
     }
     test {
         useTestNG()

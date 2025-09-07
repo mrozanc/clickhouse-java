@@ -10,7 +10,7 @@ java {
 }
 
 dependencies {
-    api(project(":clickhouse-data"))
+    api(projects.clickhouseData)
     compileOnly(libs.clickhouse.roaringbitmap) {
         isTransitive = false
     }
