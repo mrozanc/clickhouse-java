@@ -5,6 +5,7 @@ import com.clickhouse.data.ClickHouseDataType;
 import com.clickhouse.data.ClickHouseVersion;
 import com.clickhouse.data.Tuple;
 import com.clickhouse.jdbc.internal.JdbcUtils;
+import com.clickhouse.test.SoftAssertWithLineNumber;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
@@ -28,14 +29,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.GregorianCalendar;
-import java.util.Properties;
-import java.util.Random;
-import java.util.TimeZone;
-import java.util.UUID;
+import java.util.*;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -190,27 +184,30 @@ public class PreparedStatementTest extends JdbcIntegrationTest {
 
     @Test(groups = { "integration" })
     public void testSetDate() throws Exception {
+        SoftAssertWithLineNumber softly = new SoftAssertWithLineNumber();
+
         try (Connection conn = getJdbcConnection()) {
+            ((ConnectionImpl) conn).defaultCalendar = Calendar.getInstance(TimeZone.getTimeZone("Europe/Paris"));
             try (PreparedStatement stmt = conn.prepareStatement("SELECT toDate(?)")) {
                 stmt.setDate(1, java.sql.Date.valueOf("2021-01-01"), new GregorianCalendar(TimeZone.getTimeZone("UTC")));
                 try (ResultSet rs = stmt.executeQuery()) {
-                    assertTrue(rs.next());
-                    assertEquals(rs.getDate(1), java.sql.Date.valueOf("2021-01-01"));
-                    assertFalse(rs.next());
+                    softly.assertTrue(rs.next());
+                    softly.assertEquals(rs.getDate(1), java.sql.Date.valueOf("2021-01-01"));
+                    softly.assertFalse(rs.next());
                 }
 
                 stmt.setDate(1, java.sql.Date.valueOf("2021-01-02"));
                 try (ResultSet rs = stmt.executeQuery()) {
-                    assertTrue(rs.next());
-                    assertEquals(rs.getDate(1), java.sql.Date.valueOf("2021-01-02"));
-                    assertFalse(rs.next());
+                    softly.assertTrue(rs.next());
+                    softly.assertEquals(rs.getDate(1), java.sql.Date.valueOf("2021-01-02")); // FIXME actually fails when TZ induces different dates
+                    softly.assertFalse(rs.next());
                 }
 
                 stmt.setObject(1, java.sql.Date.valueOf("2021-01-02"));
                 try (ResultSet rs = stmt.executeQuery()) {
-                    assertTrue(rs.next());
-                    assertEquals(rs.getDate(1), java.sql.Date.valueOf("2021-01-02"));
-                    assertFalse(rs.next());
+                    softly.assertTrue(rs.next());
+                    softly.assertEquals(rs.getDate(1), java.sql.Date.valueOf("2021-01-02"));
+                    softly.assertFalse(rs.next());
                 }
             }
         }
@@ -228,6 +225,8 @@ public class PreparedStatementTest extends JdbcIntegrationTest {
                 }
             }
         }
+
+        softly.assertAll();
     }
 
     @Test(groups = { "integration" })
