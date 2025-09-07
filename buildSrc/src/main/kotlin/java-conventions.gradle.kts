@@ -70,6 +70,11 @@ fun registerJavaTarget(javaVersion: Int) {
 registerJavaTarget(11)
 registerJavaTarget(17)
 
+dependencies {
+    implementation(platform(project(":clickhouse-dependencies")))
+    testImplementation(platform(project(":clickhouse-dependencies")))
+}
+
 publishing {
     publications {
         create<MavenPublication>("maven") {

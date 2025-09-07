@@ -27,14 +27,14 @@ dependencies {
     testImplementation(libs.clickhouse.commons.compress) { isTransitive = false }
     testImplementation(libs.zstd.jni)
     testImplementation(testFixtures(projects.clickhouseClient))
-    testImplementation(libs.mysql.connector)
+    testImplementation(libs.mysql.connector) { isTransitive = false }
 }
 
 tasks.compileJavacc {
     dependsOn(":javacc-adapter:jar")
 }
 
-val baseRelocationPackage = "${project.group}.shaded"
+val baseRelocationPackage = "${project.group}.client.internal"
 fun ShadowJar.relocate(vararg pkgs: String) =
     pkgs.forEach { pkg -> relocate(pkg, "${baseRelocationPackage}.$pkg") }
 

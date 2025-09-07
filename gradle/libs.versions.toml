@@ -22,6 +22,7 @@ httpclient = "5.4.4"
 jackson = "2.17.2"
 javacc = "7.0.13"
 jctools = "4.0.1"
+jmh = "1.37"
 junit = "5.9.1"
 lombok = "1.18.36"
 lz4 = "1.8.0"
@@ -74,6 +75,8 @@ httpcomponents-client5-httpclient5 = { module = "org.apache.httpcomponents.clien
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
 javacc = { module = "net.java.dev.javacc:javacc", version.ref = "javacc" }
 jctools-core = { module = "org.jctools:jctools-core", version.ref = "jctools" }
+jmh-core = { module = "org.openjdk.jmh:jmh-core", version.ref = "jmh" }
+jmh-generator-annprocess = { module = "org.openjdk.jmh:jmh-generator-annprocess", version.ref = "jmh" }
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api" }
@@ -98,6 +101,7 @@ slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
 snappy-java = { module = "org.xerial.snappy:snappy-java", version.ref = "snappy" }
 tomcat-annotations-api = { module = "org.apache.tomcat:annotations-api", version.ref = "annotations-api" }
 testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers" }
+testcontainers-clickhouse = { module = "org.testcontainers:clickhouse", version.ref = "testcontainers" }
 testcontainers-toxiproxy = { module = "org.testcontainers:toxiproxy", version.ref = "testcontainers" }
 testng = { module = "org.testng:testng", version.ref = "testng" }
 wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version.ref = "wiremock" }
