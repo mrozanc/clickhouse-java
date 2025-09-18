@@ -57,9 +57,9 @@ jdbc-v2/src/main/antlr4/com/clickhouse/jdbc/internal/ClickHouseLexer.tokens
 # test configuration
 **/test/resources/test.properties
 performance/jmh-simple-results.json
-*.csv
-*.sql
-*.json
+!src/*/resources/**/*.csv
+!src/*/resources/**/*.sql
+!src/*/resources/**/*.json
 
 ### Gradle template
 .gradle

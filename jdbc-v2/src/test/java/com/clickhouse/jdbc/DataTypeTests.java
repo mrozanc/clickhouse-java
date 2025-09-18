@@ -2,14 +2,13 @@ package com.clickhouse.jdbc;
 
 import com.clickhouse.client.api.ClientConfigProperties;
 import com.clickhouse.client.api.DataTypeUtils;
-import com.clickhouse.client.api.data_formats.internal.BinaryStreamReader;
 import com.clickhouse.client.api.internal.ServerSettings;
 import com.clickhouse.client.api.sql.SQLUtils;
 import com.clickhouse.data.ClickHouseVersion;
 import com.clickhouse.data.Tuple;
+import com.clickhouse.test.SoftAssertWithLineNumber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -478,44 +477,46 @@ public class DataTypeTests extends JdbcIntegrationTest {
             }
         }
 
+        SoftAssertWithLineNumber softly = new SoftAssertWithLineNumber();
+
         // Check the results
         try (Connection conn = getJdbcConnection()) {
             try (Statement stmt = conn.createStatement()) {
                 try (ResultSet rs = stmt.executeQuery("SELECT * FROM test_dates ORDER BY order")) {
-                    assertTrue(rs.next());
-                    assertEquals(rs.getDate("date"), Date.valueOf("1970-01-01"));
-                    assertEquals(rs.getDate("date32"), Date.valueOf("1970-01-01"));
-                    assertEquals(rs.getTimestamp("dateTime").toString(), "1970-01-01 00:00:00.0");
-                    assertEquals(rs.getTimestamp("dateTime32").toString(), "1970-01-01 00:00:00.0");
-                    assertEquals(rs.getTimestamp("dateTime643").toString(), "1970-01-01 00:00:00.0");
-                    assertEquals(rs.getTimestamp("dateTime646").toString(), "1970-01-01 00:00:00.0");
-                    assertEquals(rs.getTimestamp("dateTime649").toString(), "1970-01-01 00:00:00.0");
+                    softly.assertTrue(rs.next());
+                    softly.assertEquals(rs.getDate("date"), Date.valueOf("1970-01-01"));
+                    softly.assertEquals(rs.getDate("date32"), Date.valueOf("1970-01-01"));
+                    softly.assertEquals(rs.getTimestamp("dateTime").toString(), "1970-01-01 00:00:00.0");
+                    softly.assertEquals(rs.getTimestamp("dateTime32").toString(), "1970-01-01 00:00:00.0");
+                    softly.assertEquals(rs.getTimestamp("dateTime643").toString(), "1970-01-01 00:00:00.0");
+                    softly.assertEquals(rs.getTimestamp("dateTime646").toString(), "1970-01-01 00:00:00.0");
+                    softly.assertEquals(rs.getTimestamp("dateTime649").toString(), "1970-01-01 00:00:00.0");
 
-                    assertTrue(rs.next());
-                    assertEquals(rs.getDate("date"), Date.valueOf("2149-06-06"));
-                    assertEquals(rs.getDate("date32"), Date.valueOf("2299-12-31"));
-                    assertEquals(rs.getTimestamp("dateTime").toString(), "2106-02-07 06:28:15.0");
-                    assertEquals(rs.getTimestamp("dateTime32").toString(), "2106-02-07 06:28:15.0");
-                    assertEquals(rs.getTimestamp("dateTime643").toString(), "2261-12-31 23:59:59.999");
-                    assertEquals(rs.getTimestamp("dateTime646").toString(), "2261-12-31 23:59:59.999999");
-                    assertEquals(rs.getTimestamp("dateTime649").toString(), "2261-12-31 23:59:59.999999999");
+                    softly.assertTrue(rs.next());
+                    softly.assertEquals(rs.getDate("date"), Date.valueOf("2149-06-06"));
+                    softly.assertEquals(rs.getDate("date32"), Date.valueOf("2299-12-31"));
+                    softly.assertEquals(rs.getTimestamp("dateTime").toString(), "2106-02-07 06:28:15.0");
+                    softly.assertEquals(rs.getTimestamp("dateTime32").toString(), "2106-02-07 06:28:15.0");
+                    softly.assertEquals(rs.getTimestamp("dateTime643").toString(), "2261-12-31 23:59:59.999");
+                    softly.assertEquals(rs.getTimestamp("dateTime646").toString(), "2261-12-31 23:59:59.999999");
+                    softly.assertEquals(rs.getTimestamp("dateTime649").toString(), "2261-12-31 23:59:59.999999999");
 
-                    assertTrue(rs.next());
-                    assertEquals(rs.getDate("date").toString(), date.toString());
-                    assertEquals(rs.getDate("date32").toString(), date32.toString());
-                    assertEquals(rs.getTimestamp("dateTime").toString(), Timestamp.valueOf(dateTime.toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()).toString());
-                    assertEquals(rs.getTimestamp("dateTime32").toString(), Timestamp.valueOf(dateTime32.toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()).toString());
-                    assertEquals(rs.getTimestamp("dateTime643").toString(), Timestamp.valueOf(dateTime643.toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()).toString());
-                    assertEquals(rs.getTimestamp("dateTime646").toString(), Timestamp.valueOf(dateTime646.toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()).toString());
-                    assertEquals(rs.getTimestamp("dateTime649").toString(), Timestamp.valueOf(dateTime649.toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()).toString());
+                    softly.assertTrue(rs.next());
+                    softly.assertEquals(rs.getDate("date").toString(), date.toString(), "getDate date"); // FIXME actually fails when TZ induces different dates
+                    softly.assertEquals(rs.getDate("date32").toString(), date32.toString(), "getDate date32"); // FIXME actually fails when TZ induces different dates
+                    softly.assertEquals(rs.getTimestamp("dateTime").toString(), Timestamp.valueOf(dateTime.toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()).toString(), "getTimestamp dateTime");
+                    softly.assertEquals(rs.getTimestamp("dateTime32").toString(), Timestamp.valueOf(dateTime32.toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()).toString(), "getTimestamp dateTime32");
+                    softly.assertEquals(rs.getTimestamp("dateTime643").toString(), Timestamp.valueOf(dateTime643.toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()).toString(), "getTimestamp dateTime643");
+                    softly.assertEquals(rs.getTimestamp("dateTime646").toString(), Timestamp.valueOf(dateTime646.toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()).toString(), "getTimestamp dateTime646");
+                    softly.assertEquals(rs.getTimestamp("dateTime649").toString(), Timestamp.valueOf(dateTime649.toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()).toString(), "getTimestamp dateTime649");
 
-                    assertEquals(rs.getTimestamp("dateTime", new GregorianCalendar(TimeZone.getTimeZone("UTC"))).toString(), dateTime.toString());
-                    assertEquals(rs.getTimestamp("dateTime32", new GregorianCalendar(TimeZone.getTimeZone("UTC"))).toString(), dateTime32.toString());
-                    assertEquals(rs.getTimestamp("dateTime643", new GregorianCalendar(TimeZone.getTimeZone("UTC"))).toString(), dateTime643.toString());
-                    assertEquals(rs.getTimestamp("dateTime646", new GregorianCalendar(TimeZone.getTimeZone("UTC"))).toString(), dateTime646.toString());
-                    assertEquals(rs.getTimestamp("dateTime649", new GregorianCalendar(TimeZone.getTimeZone("UTC"))).toString(), dateTime649.toString());
+                    softly.assertEquals(rs.getTimestamp("dateTime", new GregorianCalendar(TimeZone.getTimeZone("UTC"))).toString(), dateTime.toString(), "getTimestamp dateTime UTC");
+                    softly.assertEquals(rs.getTimestamp("dateTime32", new GregorianCalendar(TimeZone.getTimeZone("UTC"))).toString(), dateTime32.toString(), "getTimestamp dateTime32 UTC");
+                    softly.assertEquals(rs.getTimestamp("dateTime643", new GregorianCalendar(TimeZone.getTimeZone("UTC"))).toString(), dateTime643.toString(), "getTimestamp dateTime643 UTC");
+                    softly.assertEquals(rs.getTimestamp("dateTime646", new GregorianCalendar(TimeZone.getTimeZone("UTC"))).toString(), dateTime646.toString(), "getTimestamp dateTime646 UTC");
+                    softly.assertEquals(rs.getTimestamp("dateTime649", new GregorianCalendar(TimeZone.getTimeZone("UTC"))).toString(), dateTime649.toString(), "getTimestamp dateTime649 UTC");
 
-                    assertFalse(rs.next());
+                    softly.assertFalse(rs.next());
                 }
             }
         }
@@ -524,35 +525,35 @@ public class DataTypeTests extends JdbcIntegrationTest {
         try (Connection conn = getJdbcConnection()) {
             try (Statement stmt = conn.createStatement()) {
                 try (ResultSet rs = stmt.executeQuery("SELECT * FROM test_dates ORDER BY order")) {
-                    assertTrue(rs.next());
-                    assertEquals(rs.getObject("date"), Date.valueOf("1970-01-01"));
-                    assertEquals(rs.getObject("date32"), Date.valueOf("1970-01-01"));
-                    assertEquals(rs.getObject("dateTime").toString(), "1970-01-01 00:00:00.0");
-                    assertEquals(rs.getObject("dateTime32").toString(), "1970-01-01 00:00:00.0");
-                    assertEquals(rs.getObject("dateTime643").toString(), "1970-01-01 00:00:00.0");
-                    assertEquals(rs.getObject("dateTime646").toString(), "1970-01-01 00:00:00.0");
-                    assertEquals(rs.getObject("dateTime649").toString(), "1970-01-01 00:00:00.0");
+                    softly.assertTrue(rs.next());
+                    softly.assertEquals(rs.getObject("date"), Date.valueOf("1970-01-01"), "getObject date");
+                    softly.assertEquals(rs.getObject("date32"), Date.valueOf("1970-01-01"), "getObject date32");
+                    softly.assertEquals(rs.getObject("dateTime").toString(), "1970-01-01 00:00:00.0", "getObject dateTime");
+                    softly.assertEquals(rs.getObject("dateTime32").toString(), "1970-01-01 00:00:00.0", "getObject dateTime32");
+                    softly.assertEquals(rs.getObject("dateTime643").toString(), "1970-01-01 00:00:00.0", "getObject dateTime643");
+                    softly.assertEquals(rs.getObject("dateTime646").toString(), "1970-01-01 00:00:00.0", "getObject dateTime646");
+                    softly.assertEquals(rs.getObject("dateTime649").toString(), "1970-01-01 00:00:00.0", "getObject dateTime649");
 
-                    assertTrue(rs.next());
-                    assertEquals(rs.getObject("date"), Date.valueOf("2149-06-06"));
-                    assertEquals(rs.getObject("date32"), Date.valueOf("2299-12-31"));
-                    assertEquals(rs.getObject("dateTime").toString(), "2106-02-07 06:28:15.0");
-                    assertEquals(rs.getObject("dateTime32").toString(), "2106-02-07 06:28:15.0");
-                    assertEquals(rs.getObject("dateTime643").toString(), "2261-12-31 23:59:59.999");
-                    assertEquals(rs.getObject("dateTime646").toString(), "2261-12-31 23:59:59.999999");
-                    assertEquals(rs.getObject("dateTime649").toString(), "2261-12-31 23:59:59.999999999");
+                    softly.assertTrue(rs.next());
+                    softly.assertEquals(rs.getObject("date"), Date.valueOf("2149-06-06"), "getObject date");
+                    softly.assertEquals(rs.getObject("date32"), Date.valueOf("2299-12-31"), "getObject date32");
+                    softly.assertEquals(rs.getObject("dateTime").toString(), "2106-02-07 06:28:15.0", "getObject dateTime");
+                    softly.assertEquals(rs.getObject("dateTime32").toString(), "2106-02-07 06:28:15.0", "getObject dateTime32");
+                    softly.assertEquals(rs.getObject("dateTime643").toString(), "2261-12-31 23:59:59.999", "getObject dateTime643");
+                    softly.assertEquals(rs.getObject("dateTime646").toString(), "2261-12-31 23:59:59.999999", "getObject dateTime646");
+                    softly.assertEquals(rs.getObject("dateTime649").toString(), "2261-12-31 23:59:59.999999999", "getObject dateTime649");
 
-                    assertTrue(rs.next());
-                    assertEquals(rs.getObject("date").toString(), date.toString());
-                    assertEquals(rs.getObject("date32").toString(), date32.toString());
+                    softly.assertTrue(rs.next());
+                    softly.assertEquals(rs.getObject("date").toString(), date.toString(), "getObject date"); // FIXME actually fails when TZ induces different dates
+                    softly.assertEquals(rs.getObject("date32").toString(), date32.toString(), "getObject date32");  // FIXME actually fails when TZ induces different dates
 
-                    assertEquals(rs.getObject("dateTime").toString(), Timestamp.valueOf(dateTime.toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()).toString());
-                    assertEquals(rs.getObject("dateTime32").toString(), Timestamp.valueOf(dateTime32.toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()).toString());
-                    assertEquals(rs.getObject("dateTime643").toString(), Timestamp.valueOf(dateTime643.toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()).toString());
-                    assertEquals(rs.getObject("dateTime646").toString(), Timestamp.valueOf(dateTime646.toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()).toString());
-                    assertEquals(rs.getObject("dateTime649").toString(), Timestamp.valueOf(dateTime649.toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()).toString());
+                    softly.assertEquals(rs.getObject("dateTime").toString(), Timestamp.valueOf(dateTime.toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()).toString(), "getObject dateTime");
+                    softly.assertEquals(rs.getObject("dateTime32").toString(), Timestamp.valueOf(dateTime32.toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()).toString(), "getObject dateTime32");
+                    softly.assertEquals(rs.getObject("dateTime643").toString(), Timestamp.valueOf(dateTime643.toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()).toString(), "getObject dateTime643");
+                    softly.assertEquals(rs.getObject("dateTime646").toString(), Timestamp.valueOf(dateTime646.toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()).toString(), "getObject dateTime646");
+                    softly.assertEquals(rs.getObject("dateTime649").toString(), Timestamp.valueOf(dateTime649.toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()).toString(), "getObject dateTime649");
 
-                    assertFalse(rs.next());
+                    softly.assertFalse(rs.next());
                 }
             }
         }
@@ -561,52 +562,53 @@ public class DataTypeTests extends JdbcIntegrationTest {
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery("SELECT * FROM test_dates ORDER BY order"))
         {
-            assertTrue(rs.next());
-            assertEquals(rs.getString("date"), "1970-01-01");
-            assertEquals(rs.getString("date32"), "1970-01-01");
-            assertEquals(rs.getString("dateTime"), "1970-01-01 00:00:00");
-            assertEquals(rs.getString("dateTime32"), "1970-01-01 00:00:00");
-            assertEquals(rs.getString("dateTime643"), "1970-01-01 00:00:00");
-            assertEquals(rs.getString("dateTime646"), "1970-01-01 00:00:00");
-            assertEquals(rs.getString("dateTime649"), "1970-01-01 00:00:00");
+            softly.assertTrue(rs.next());
+            softly.assertEquals(rs.getString("date"), "1970-01-01", "getString date");
+            softly.assertEquals(rs.getString("date32"), "1970-01-01", "getString date32");
+            softly.assertEquals(rs.getString("dateTime"), "1970-01-01 00:00:00", "getString dateTime");
+            softly.assertEquals(rs.getString("dateTime32"), "1970-01-01 00:00:00", "getString dateTime32");
+            softly.assertEquals(rs.getString("dateTime643"), "1970-01-01 00:00:00", "getString dateTime643");
+            softly.assertEquals(rs.getString("dateTime646"), "1970-01-01 00:00:00", "getString dateTime646");
+            softly.assertEquals(rs.getString("dateTime649"), "1970-01-01 00:00:00", "getString dateTime649");
 
-            assertTrue(rs.next());
-            assertEquals(rs.getString("date"), "2149-06-06");
-            assertEquals(rs.getString("date32"), "2299-12-31");
-            assertEquals(rs.getString("dateTime"), "2106-02-07 06:28:15");
-            assertEquals(rs.getString("dateTime32"), "2106-02-07 06:28:15");
-            assertEquals(rs.getString("dateTime643"), "2261-12-31 23:59:59.999");
-            assertEquals(rs.getString("dateTime646"), "2261-12-31 23:59:59.999999");
-            assertEquals(rs.getString("dateTime649"), "2261-12-31 23:59:59.999999999");
+            softly.assertTrue(rs.next());
+            softly.assertEquals(rs.getString("date"), "2149-06-06", "getString date");
+            softly.assertEquals(rs.getString("date32"), "2299-12-31", "getString date32");
+            softly.assertEquals(rs.getString("dateTime"), "2106-02-07 06:28:15", "getString dateTime");
+            softly.assertEquals(rs.getString("dateTime32"), "2106-02-07 06:28:15", "getString dateTime32");
+            softly.assertEquals(rs.getString("dateTime643"), "2261-12-31 23:59:59.999", "getString dateTime643");
+            softly.assertEquals(rs.getString("dateTime646"), "2261-12-31 23:59:59.999999", "getString dateTime646");
+            softly.assertEquals(rs.getString("dateTime649"), "2261-12-31 23:59:59.999999999", "getString dateTime649");
 
             ZoneId tzServer = ZoneId.of(((ConnectionImpl) conn).getClient().getServerTimeZone());
-            assertTrue(rs.next());
-            assertEquals(
+            softly.assertTrue(rs.next());
+            softly.assertEquals(
                 rs.getString("date"),
                 Instant.ofEpochMilli(date.getTime()).atZone(tzServer).toLocalDate().toString());
-            assertEquals(
+            softly.assertEquals(
                 rs.getString("date32"),
                 Instant.ofEpochMilli(date32.getTime()).atZone(tzServer).toLocalDate().toString());
-            assertEquals(
+            softly.assertEquals(
                 rs.getString("dateTime"),
                 DataTypeUtils.DATETIME_FORMATTER.format(
                     Instant.ofEpochMilli(dateTime.getTime()).atZone(tzServer)));
-            assertEquals(
+            softly.assertEquals(
                 rs.getString("dateTime32"),
                 DataTypeUtils.DATETIME_FORMATTER.format(
                     Instant.ofEpochMilli(dateTime32.getTime()).atZone(tzServer)));
-            assertEquals(
+            softly.assertEquals(
                 rs.getString("dateTime643"),
                 DataTypeUtils.DATETIME_WITH_NANOS_FORMATTER.format(dateTime643.toInstant().atZone(tzServer)));
-            assertEquals(
+            softly.assertEquals(
                 rs.getString("dateTime646"),
                     DataTypeUtils.DATETIME_WITH_NANOS_FORMATTER.format(dateTime646.toInstant().atZone(tzServer)));
-            assertEquals(
+            softly.assertEquals(
                 rs.getString("dateTime649"),
                 DataTypeUtils.DATETIME_WITH_NANOS_FORMATTER.format(dateTime649.toInstant().atZone(tzServer)));
 
-            assertFalse(rs.next());
+            softly.assertFalse(rs.next());
         }
+        softly.assertAll();
     }
 
 

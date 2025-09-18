@@ -5,6 +5,9 @@ module com.clickhouse.r2dbc {
     exports com.clickhouse.r2dbc;
 
     requires transitive com.clickhouse.client;
+
+    requires static java.sql;
+
     requires transitive r2dbc.spi;
     requires transitive reactor.core;
     requires transitive org.lz4.java;

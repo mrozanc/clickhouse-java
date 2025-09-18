@@ -1,5 +1,6 @@
 plugins {
     `java-conventions`
+    id("com.gradleup.shadow")
 }
 
 java {
@@ -9,7 +10,7 @@ java {
 }
 
 dependencies {
-    api(project(":clickhouse-client"))
+    api(projects.clickhouseClient)
     api(libs.httpcomponents.client5.httpclient5)
 
     "compressionImplementation"(libs.zstd.jni)
@@ -28,5 +29,24 @@ dependencies {
 
     testImplementation(libs.testcontainers.toxiproxy)
     testImplementation(libs.wiremock.standalone)
-    testImplementation(testFixtures(project(":clickhouse-client")))
+    testImplementation(testFixtures(projects.clickhouseClient))
+}
+
+tasks.shadowJar {
+    archiveClassifier = "shaded"
+    configurations = listOf(project.configurations.compileClasspath.get())
+    dependencies {
+        include(project(projects.clickhouseData))
+        include(project(projects.clickhouseClient))
+        include(dependency(libs.lz4.pure.java.get().module.toString()))
+    }
+    relocate("net.jpountz", "${project.group}.client.internal.jpountz")
+    manifest {
+        attributes["Automatic-Module-Name"] = "com.clickhouse.client.http"
+    }
+    exclude("**/module-info.class")
+}
+
+tasks.assemble {
+    dependsOn(tasks.shadowJar)
 }

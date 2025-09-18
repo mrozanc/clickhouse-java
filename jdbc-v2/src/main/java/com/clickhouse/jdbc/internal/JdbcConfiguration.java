@@ -89,7 +89,7 @@ public class JdbcConfiguration {
      *
      * @param url
      *            the JDBC connection URL
-     * @return {@link true} if ClickHouse JDBC driver is responsible for
+     * @return {@code true} if ClickHouse JDBC driver is responsible for
      *         connection, {@code false} else
      * @throws SQLException
      *             if there is a technical error parsing the {@code url}
