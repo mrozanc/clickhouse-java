@@ -19,7 +19,7 @@ java {
             java {
                 val r2dbc0Files = srcDirs.asSequence()
                     .map { it.toPath() }
-                    .flatMap { d -> d.walk().map { it.relativeTo(d).toString() } }
+                    .flatMap { d -> d.walk().map { it.relativeTo(d).toString().replace(File.separatorChar, '/') } }
                     .toSet()
                 srcDir(sourceSets.main.get().java.srcDirs)
                 exclude { f ->
