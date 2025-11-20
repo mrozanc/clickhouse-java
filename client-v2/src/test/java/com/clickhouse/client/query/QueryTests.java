@@ -16,6 +16,7 @@ import com.clickhouse.client.api.data_formats.internal.BinaryStreamReader;
 import com.clickhouse.client.api.enums.Protocol;
 import com.clickhouse.client.api.insert.InsertResponse;
 import com.clickhouse.client.api.insert.InsertSettings;
+import com.clickhouse.client.api.internal.DataTypeConverter;
 import com.clickhouse.client.api.internal.ServerSettings;
 import com.clickhouse.client.api.internal.StopWatch;
 import com.clickhouse.client.api.metadata.TableSchema;
@@ -95,7 +96,7 @@ public class QueryTests extends BaseIntegrationTest {
 
     private final static Random RANDOM = new Random();
 
-    private Client client;
+    protected Client client;
 
     private boolean useServerCompression = false;
 
@@ -1454,7 +1455,7 @@ public class QueryTests extends BaseIntegrationTest {
         }
     }
 
-    private final static List<String> DATASET_COLUMNS = Arrays.asList(
+    protected final static List<String> DATASET_COLUMNS = Arrays.asList(
             "col1 UInt32",
             "col2 Int32",
             "col3 String",
@@ -1464,7 +1465,7 @@ public class QueryTests extends BaseIntegrationTest {
             "col7 Array(Int32)"
     );
 
-    private final static List<Function<String, Object>> DATASET_VALUE_GENERATORS = Arrays.asList(
+    protected final static List<Function<String, Object>> DATASET_VALUE_GENERATORS = Arrays.asList(
             c -> Long.valueOf(RANDOM.nextInt(Integer.MAX_VALUE)),
             c -> RANDOM.nextInt(Integer.MAX_VALUE),
             c -> "value_" + RANDOM.nextInt(Integer.MAX_VALUE),
@@ -1474,13 +1475,13 @@ public class QueryTests extends BaseIntegrationTest {
             c -> RANDOM.ints(10, 0, Integer.MAX_VALUE).boxed().collect(Collectors.toList())
     );
 
-    private final static String DATASET_TABLE = "query_test_table";
+    protected final static String DATASET_TABLE = "query_test_table";
 
     private Map<String, Object> prepareSimpleDataSet() {
         return prepareDataSet(DATASET_TABLE, DATASET_COLUMNS, DATASET_VALUE_GENERATORS, 1).get(0);
     }
 
-    private List<Map<String, Object>> prepareDataSet(String table, List<String> columns, List<Function<String, Object>> valueGenerators,
+    protected List<Map<String, Object>> prepareDataSet(String table, List<String> columns, List<Function<String, Object>> valueGenerators,
                                                      int rows) {
         List<Map<String, Object>> data = new ArrayList<>(rows);
 
@@ -1632,6 +1633,20 @@ public class QueryTests extends BaseIntegrationTest {
             Assert.assertTrue((Integer) record.getInteger("col1") >= 2);
         }
         Assert.assertEquals(allRecords.size(), 2);
+    }
+
+    @Test(groups = {"integration"})
+    public void testQueryParamsWithArrays() {
+        final Map<String, Object> params = new HashMap<>();
+        params.put("database_name", "system");
+        params.put("table_names",
+                DataTypeConverter.INSTANCE.arrayToString(Arrays.asList("COLLATIONS", "ENGINES"), "Array(String)"));
+        // This query should not throw an exception
+        List<GenericRecord> records = client.queryAll("SELECT database, name FROM system.tables WHERE name IN {table_names:Array(String)}",
+                params);
+
+        Assert.assertEquals(records.get(0).getString("name"), "COLLATIONS");
+        Assert.assertEquals(records.get(1).getString("name"), "ENGINES");
     }
 
     @Test(groups = {"integration"})
@@ -2131,7 +2146,7 @@ public class QueryTests extends BaseIntegrationTest {
                     } else if (decision == 1) {
                         return rnd.nextInt();
                     } else {
-                        return rnd.nextDouble();
+                        return rnd.nextLong();
                     }
                 }), 1000);
 
@@ -2198,6 +2213,34 @@ public class QueryTests extends BaseIntegrationTest {
             Mockito.verifyNoMoreInteractions(settings);
             Assert.assertNull(settings.getFormat());
             Assert.assertEquals(response.getFormat(), ClickHouseFormat.JSONEachRow);
+        }
+    }
+
+    @Test
+    public void testDuplicateColumnNames() throws Exception {
+        {
+            // simple scenario
+            List<GenericRecord> records = client.queryAll("SELECT 'a', 'a'");
+            GenericRecord record = records.get(0);
+            Assert.assertEquals(record.getString("'a'"), "a");
+            Assert.assertEquals(record.getString(1), "a");
+            Assert.assertEquals(record.getString(2), "a");
+        }
+
+        {
+            client.execute("DROP TABLE IF EXISTS test_duplicate_column_names1").get().close();
+            client.execute("DROP TABLE IF EXISTS test_duplicate_column_names2").get().close();
+            client.execute("CREATE TABLE test_duplicate_column_names1 (name String ) ENGINE = MergeTree ORDER BY ()").get().close();
+            client.execute("INSERT INTO test_duplicate_column_names1 VALUES ('some name')").get().close();
+            client.execute("CREATE TABLE test_duplicate_column_names2 (name String ) ENGINE = MergeTree ORDER BY ()").get().close();
+            client.execute("INSERT INTO test_duplicate_column_names2 VALUES ('another name')").get().close();
+
+            List<GenericRecord> records = client.queryAll("SELECT * FROM test_duplicate_column_names1, test_duplicate_column_names2");
+            GenericRecord record = records.get(0);
+            Assert.assertEquals(record.getString("name"), "some name");
+            Assert.assertEquals(record.getString("test_duplicate_column_names2.name"), "another name");
+            Assert.assertEquals(record.getString(1), "some name");
+            Assert.assertEquals(record.getString(2), "another name");
         }
     }
 }

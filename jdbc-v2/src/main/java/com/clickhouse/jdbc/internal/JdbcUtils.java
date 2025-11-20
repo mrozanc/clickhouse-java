@@ -16,9 +16,20 @@ import java.sql.Date;
 import java.sql.JDBCType;
 import java.sql.SQLException;
 import java.sql.SQLType;
+import java.sql.Types;
 import java.time.*;
+import java.time.chrono.ChronoZonedDateTime;
 import java.time.temporal.TemporalAccessor;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 public class JdbcUtils {
     //Define a map to store the mapping between ClickHouse data types and SQL data types
@@ -65,12 +76,12 @@ public class JdbcUtils {
         map.put(ClickHouseDataType.Array, JDBCType.ARRAY);
         map.put(ClickHouseDataType.Nested, JDBCType.ARRAY);
         map.put(ClickHouseDataType.Map, JDBCType.JAVA_OBJECT);
-        map.put(ClickHouseDataType.Point, JDBCType.OTHER);
-        map.put(ClickHouseDataType.Ring, JDBCType.OTHER);
-        map.put(ClickHouseDataType.Polygon, JDBCType.OTHER);
-        map.put(ClickHouseDataType.LineString, JDBCType.OTHER);
-        map.put(ClickHouseDataType.MultiPolygon, JDBCType.OTHER);
-        map.put(ClickHouseDataType.MultiLineString, JDBCType.OTHER);
+        map.put(ClickHouseDataType.Point, JDBCType.ARRAY);
+        map.put(ClickHouseDataType.Ring, JDBCType.ARRAY);
+        map.put(ClickHouseDataType.Polygon, JDBCType.ARRAY);
+        map.put(ClickHouseDataType.LineString, JDBCType.ARRAY);
+        map.put(ClickHouseDataType.MultiPolygon, JDBCType.ARRAY);
+        map.put(ClickHouseDataType.MultiLineString, JDBCType.ARRAY);
         return ImmutableMap.copyOf(map);
     }
 
@@ -219,7 +230,8 @@ public class JdbcUtils {
             } else if (type == String.class) {
                 return value.toString();
             } else if (type == Boolean.class || type == boolean.class) {
-                return Boolean.parseBoolean(value.toString());
+                String str = value.toString();
+                return !("false".equalsIgnoreCase(str) || "0".equalsIgnoreCase(str));
             } else if (type == Byte.class || type == byte.class) {
                 return Byte.parseByte(value.toString());
             } else if (type == Short.class || type == short.class) {
@@ -244,6 +256,8 @@ public class JdbcUtils {
                 return OffsetDateTime.from((TemporalAccessor) value);
             } else if (type == ZonedDateTime.class && value instanceof TemporalAccessor) {
                 return ZonedDateTime.from((TemporalAccessor) value);
+            } else if (type == Instant.class && value instanceof TemporalAccessor) {
+                return Instant.from((TemporalAccessor) value);
             } else if (type == Date.class && value instanceof TemporalAccessor) {
                 return Date.valueOf(LocalDate.from((TemporalAccessor) value));
             } else if (type == java.sql.Timestamp.class && value instanceof TemporalAccessor) {
@@ -266,6 +280,8 @@ public class JdbcUtils {
                 }
                 // base type is unknown. all objects should be converted
                 return new Array(column, ((List<?>) value).toArray());
+            } else if (type == java.sql.Array.class && value.getClass().isArray()) {
+                return new Array(column, arrayToObjectArray(value));
             } else if (type == Inet4Address.class && value instanceof Inet6Address) {
                 // Convert Inet6Address to Inet4Address
                 return InetAddressConverter.convertToIpv4((InetAddress) value);
@@ -306,5 +322,76 @@ public class JdbcUtils {
             convertedValues[i] = convert(values[i], type);
         }
         return convertedValues;
+    }
+
+    private static Object[] arrayToObjectArray(Object array) {
+        if (array == null) {
+            return null;
+        }
+        if (array instanceof Object[]) {
+            return (Object[]) array;
+        }
+        if (!array.getClass().isArray()) {
+            throw new IllegalArgumentException("Not an array: " + array.getClass().getName());
+        }
+
+        if (array instanceof byte[]) {
+            byte[] src = (byte[]) array;
+            Object[] dst = new Object[src.length];
+            for (int i = 0; i < src.length; i++) {
+                dst[i] = src[i];
+            }
+            return dst;
+        } else if (array instanceof short[]) {
+            short[] src = (short[]) array;
+            Object[] dst = new Object[src.length];
+            for (int i = 0; i < src.length; i++) {
+                dst[i] = src[i];
+            }
+            return dst;
+        } else if (array instanceof int[]) {
+            int[] src = (int[]) array;
+            Object[] dst = new Object[src.length];
+            for (int i = 0; i < src.length; i++) {
+                dst[i] = src[i];
+            }
+            return dst;
+        } else if (array instanceof long[]) {
+            long[] src = (long[]) array;
+            Object[] dst = new Object[src.length];
+            for (int i = 0; i < src.length; i++) {
+                dst[i] = src[i];
+            }
+            return dst;
+        } else if (array instanceof float[]) {
+            float[] src = (float[]) array;
+            Object[] dst = new Object[src.length];
+            for (int i = 0; i < src.length; i++) {
+                dst[i] = src[i];
+            }
+            return dst;
+        } else if (array instanceof double[]) {
+            double[] src = (double[]) array;
+            Object[] dst = new Object[src.length];
+            for (int i = 0; i < src.length; i++) {
+                dst[i] = src[i];
+            }
+            return dst;
+        } else if (array instanceof char[]) {
+            char[] src = (char[]) array;
+            Object[] dst = new Object[src.length];
+            for (int i = 0; i < src.length; i++) {
+                dst[i] = src[i];
+            }
+            return dst;
+        } else if (array instanceof boolean[]) {
+            boolean[] src = (boolean[]) array;
+            Object[] dst = new Object[src.length];
+            for (int i = 0; i < src.length; i++) {
+                dst[i] = src[i];
+            }
+            return dst;
+        }
+        throw new IllegalArgumentException("Cannot convert " + array.getClass().getName() + " to an Object[]");
     }
 }

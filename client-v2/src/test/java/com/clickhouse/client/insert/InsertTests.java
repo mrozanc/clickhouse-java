@@ -52,6 +52,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPOutputStream;
 
@@ -62,14 +63,14 @@ import static org.testng.Assert.fail;
 
 @Test(groups = {"integration"})
 public class InsertTests extends BaseIntegrationTest {
-    private Client client;
-    private InsertSettings settings;
+    protected Client client;
+    protected InsertSettings settings;
 
     private boolean useClientCompression = false;
 
     private boolean useHttpCompression = false;
 
-    private static final int EXECUTE_CMD_TIMEOUT = 10; // seconds
+    static final int EXECUTE_CMD_TIMEOUT = 10; // seconds
 
     InsertTests() {
     }
@@ -105,7 +106,8 @@ public class InsertTests extends BaseIntegrationTest {
                 .useHttpCompression(useHttpCompression)
                 .setDefaultDatabase(ClickHouseServerForTest.getDatabase())
                 .serverSetting(ServerSettings.ASYNC_INSERT, "0")
-                .serverSetting(ServerSettings.WAIT_END_OF_QUERY, "1");
+                .serverSetting(ServerSettings.WAIT_END_OF_QUERY, "1")
+                .setSharedOperationExecutor(Executors.newCachedThreadPool());
     }
 
     @AfterMethod(groups = { "integration" })
@@ -235,7 +237,6 @@ public class InsertTests extends BaseIntegrationTest {
         try (InsertResponse response = client.insert(tableName, Collections.singletonList(pojo), settings).get(30, TimeUnit.SECONDS)) {
             fail("Should have thrown an exception");
         } catch (ClickHouseException e) {
-            e.printStackTrace();
             assertTrue(e.getCause() instanceof  IllegalArgumentException);
         }
     }
@@ -262,6 +263,14 @@ public class InsertTests extends BaseIntegrationTest {
 
         List<GenericRecord> records = client.queryAll("SELECT * FROM " + tableName);
         assertEquals(records.size(), 1000);
+
+        for (int i = 0; i < records.size(); i++) {
+            assertEquals(records.get(i).getInteger(1), i);
+            assertEquals(records.get(i).getString("event_ts"), "2021-01-01 00:00:00");
+            assertEquals(records.get(i).getString("name"), "name" + i);
+            assertEquals(records.get(i).getInteger("p1"), i);
+            assertEquals(records.get(i).getString("p2"), "p2");
+        }
     }
 
     @Test(groups = { "integration" }, dataProvider = "insertRawDataAsyncProvider", dataProviderClass = InsertTests.class)
@@ -282,7 +291,6 @@ public class InsertTests extends BaseIntegrationTest {
         writer.flush();
         client.insert(tableName, new ByteArrayInputStream(data.toByteArray()),
                 ClickHouseFormat.TSV, localSettings).whenComplete((response, throwable) -> {
-                OperationMetrics metrics = response.getMetrics();
                 assertEquals((int)response.getWrittenRows(), 1000 );
 
                 List<GenericRecord> records = client.queryAll("SELECT * FROM " + tableName);
@@ -297,7 +305,7 @@ public class InsertTests extends BaseIntegrationTest {
                                 "Non-async operations should not use ForkJoinPool, but found: " + currentThreadName);
                     }
                 })
-                .join(); // wait operation complete. only for tests
+                .join().close(); // wait operation complete. only for tests
     }
 
     @DataProvider
@@ -668,14 +676,10 @@ public class InsertTests extends BaseIntegrationTest {
                 out.write(row.getBytes());
             }
         }, ClickHouseFormat.JSONEachRow, new InsertSettings()).get()) {
-            System.out.println("Rows written: " + response.getWrittenRows());
         }
 
         List<GenericRecord> records = client.queryAll("SELECT * FROM \"" + tableName  + "\"" );
-
-        for (GenericRecord record : records) {
-            System.out.println("> " + record.getString(1) + ", " + record.getFloat(2) + ", " + record.getFloat(3));
-        }
+        assertEquals(records.size(), 4);
     }
 
 //    static {
