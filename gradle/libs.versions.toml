@@ -72,7 +72,9 @@ gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
 hikaricp = { module = "com.zaxxer:HikariCP", version.ref = "hikaricp" }
 httpcomponents-client5-httpclient5 = { module = "org.apache.httpcomponents.client5:httpclient5", version.ref = "httpclient" }
+jackson-core = { module = "com.fasterxml.jackson.core:jackson-core", version.ref = "jackson" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
+jackson-dataformat-yaml = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml", version.ref = "jackson" }
 javacc = { module = "net.java.dev.javacc:javacc", version.ref = "javacc" }
 jctools-core = { module = "org.jctools:jctools-core", version.ref = "jctools" }
 jmh-core = { module = "org.openjdk.jmh:jmh-core", version.ref = "jmh" }

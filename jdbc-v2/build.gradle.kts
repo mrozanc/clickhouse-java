@@ -2,12 +2,15 @@ import kotlin.io.path.relativeTo
 import kotlin.io.path.walk
 
 plugins {
+    alias(libs.plugins.javacc)
     `java-conventions`
     `all-dependencies-jar`
     antlr
 }
 
 dependencies {
+    javacc(projects.javaccAdapter)
+
     antlr(libs.antlr4)
 
     api(projects.clientV2)
@@ -16,8 +19,17 @@ dependencies {
     implementation(libs.guava)
 
     testImplementation(libs.wiremock.standalone)
+    testImplementation(libs.jackson.dataformat.yaml)
+    testImplementation(libs.jackson.databind)
+    testImplementation(libs.jackson.core)
     testImplementation(libs.commons.lang3)
     testImplementation(testFixtures(projects.clickhouseClient))
+    testCompileOnly(libs.lombok)
+    testAnnotationProcessor(libs.lombok)
+}
+
+tasks.compileJavacc {
+    dependsOn(":javacc-adapter:jar")
 }
 
 val antlrBasePath = file("src/main/antlr4").toPath()

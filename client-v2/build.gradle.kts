@@ -16,6 +16,7 @@ dependencies {
     compileOnly(libs.micrometer.core)
     implementation(libs.guava)
 
+    testImplementation(libs.zstd.jni)
     testImplementation(libs.micrometer.core)
     testImplementation(libs.jackson.databind)
     testImplementation(libs.testcontainers.toxiproxy)
